@@ -160,6 +160,34 @@ export function renderBanner(
         </SuccessBanner>
       )
     }
+    case BannerType.SuccessfulDrop: {
+      const pluralized = banner.count === 1 ? 'commit' : 'commits'
+
+      return (
+        <SuccessBanner
+          key="successful-drop"
+          timeout={15000}
+          onDismissed={onDismissed}
+          onUndo={banner.onUndo}
+        >
+          <span>
+            Successfully dropped {banner.count} {pluralized}.
+          </span>
+        </SuccessBanner>
+      )
+    }
+    case BannerType.DropUndone: {
+      const pluralized = banner.commitsCount === 1 ? 'commit' : 'commits'
+      return (
+        <SuccessBanner
+          key="drop-undone"
+          timeout={5000}
+          onDismissed={onDismissed}
+        >
+          Drop of {banner.commitsCount} {pluralized} undone.
+        </SuccessBanner>
+      )
+    }
     case BannerType.ConflictsFound:
       return (
         <ConflictsFoundBanner

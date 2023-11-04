@@ -227,6 +227,12 @@ const DefaultDailyMeasures: IDailyMeasures = {
   submoduleDiffViewedFromHistoryCount: 0,
   openSubmoduleFromDiffCount: 0,
   previewedPullRequestCount: 0,
+  dropCommitSuccessfulCount: 0,
+  dropCommitStartedCount: 0,
+  dropCommitConflictsEncounteredCount: 0,
+  dropCommitSuccessfulWithConflictsCount: 0,
+  dropMultipleCommitsCount: 0,
+  dropCommitUndoneCount: 0,
 }
 
 // A subtype of IDailyMeasures filtered to contain only its numeric properties
@@ -964,6 +970,8 @@ export class StatsStore implements IStatsStore {
     kind: MultiCommitOperationKind
   ): Promise<void> {
     switch (kind) {
+      case MultiCommitOperationKind.Drop:
+        return this.increment('dropCommitConflictsEncounteredCount')
       case MultiCommitOperationKind.Squash:
         return this.increment('squashConflictsEncounteredCount')
       case MultiCommitOperationKind.Reorder:
@@ -986,6 +994,8 @@ export class StatsStore implements IStatsStore {
     kind: MultiCommitOperationKind
   ): Promise<void> {
     switch (kind) {
+      case MultiCommitOperationKind.Drop:
+        return this.increment('dropCommitSuccessfulCount')
       case MultiCommitOperationKind.Squash:
         return this.increment('squashSuccessfulCount')
       case MultiCommitOperationKind.Reorder:
@@ -1009,6 +1019,8 @@ export class StatsStore implements IStatsStore {
     kind: MultiCommitOperationKind
   ): Promise<void> {
     switch (kind) {
+      case MultiCommitOperationKind.Drop:
+        return this.increment('dropCommitSuccessfulWithConflictsCount')
       case MultiCommitOperationKind.Squash:
         return this.increment('squashSuccessfulWithConflictsCount')
       case MultiCommitOperationKind.Reorder:
@@ -1030,6 +1042,8 @@ export class StatsStore implements IStatsStore {
     kind: MultiCommitOperationKind
   ): Promise<void> {
     switch (kind) {
+      case MultiCommitOperationKind.Drop:
+        return this.increment('dropCommitUndoneCount')
       case MultiCommitOperationKind.Squash:
         return this.recordSquashUndone()
       case MultiCommitOperationKind.Reorder:

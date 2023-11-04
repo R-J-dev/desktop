@@ -18,6 +18,7 @@ export enum RetryActionType {
   Squash,
   Reorder,
   DiscardChanges,
+  Drop,
 }
 
 /** The retriable actions and their associated data. */
@@ -36,6 +37,12 @@ export type RetryAction =
       type: RetryActionType.Checkout
       repository: Repository
       branch: Branch
+    }
+  | {
+      type: RetryActionType.Drop
+      repository: Repository
+      commitsToDrop: ReadonlyArray<Commit>
+      lastRetainedCommitRef: string | null
     }
   | {
       type: RetryActionType.Merge

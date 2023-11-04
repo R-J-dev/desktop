@@ -11,6 +11,7 @@ import { IDetachedHead, IUnbornRepository, IValidBranch } from './tip'
  * and as such should be capitalized.
  */
 export const enum MultiCommitOperationKind {
+  Drop = 'Drop',
   Rebase = 'Rebase',
   CherryPick = 'Cherry-pick',
   Squash = 'Squash',
@@ -22,12 +23,14 @@ export const enum MultiCommitOperationKind {
 export function isIdMultiCommitOperation(
   id: string
 ): id is
+  | MultiCommitOperationKind.Drop
   | MultiCommitOperationKind.Rebase
   | MultiCommitOperationKind.CherryPick
   | MultiCommitOperationKind.Squash
   | MultiCommitOperationKind.Merge
   | MultiCommitOperationKind.Reorder {
   return (
+    id === MultiCommitOperationKind.Drop ||
     id === MultiCommitOperationKind.Rebase ||
     id === MultiCommitOperationKind.CherryPick ||
     id === MultiCommitOperationKind.Squash ||
@@ -199,6 +202,10 @@ interface ISquashDetails extends IInteractiveRebaseDetails {
   readonly commitContext: ICommitContext
 }
 
+interface IDropDetails extends IInteractiveRebaseDetails {
+  readonly kind: MultiCommitOperationKind.Drop
+}
+
 interface IReorderDetails extends IInteractiveRebaseDetails {
   readonly kind: MultiCommitOperationKind.Reorder
 
@@ -242,6 +249,7 @@ export type MultiCommitOperationDetail =
   | ICherryPickDetails
   | IRebaseDetails
   | IMergeDetails
+  | IDropDetails
 
 export function instanceOfIBaseRebaseDetails(
   object: any

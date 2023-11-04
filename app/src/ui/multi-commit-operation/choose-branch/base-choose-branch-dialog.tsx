@@ -184,6 +184,7 @@ export abstract class BaseChooseBranchDialog extends React.Component<
         break
       case MultiCommitOperationKind.CherryPick:
       case MultiCommitOperationKind.Reorder:
+      case MultiCommitOperationKind.Drop:
         break
       default:
         assertNever(option.id, `Unknown operation value: ${option.id}`)

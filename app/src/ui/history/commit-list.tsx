@@ -67,6 +67,12 @@ interface ICommitListProps {
   /** Callback to fire to revert a given commit in the current repository */
   readonly onRevertCommit?: (commit: Commit) => void
 
+  /** Callback to fire to delete/drop a given list of commits in the current repository */
+  readonly onDropCommit?: (
+    commitsToDrop: ReadonlyArray<Commit>,
+    lastRetainedCommitRef: string | null
+  ) => void
+
   readonly onAmendCommit?: (commit: Commit, isLocalCommit: boolean) => void
 
   /** Callback to fire to open a given commit on GitHub */
@@ -545,6 +551,17 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
         },
         enabled: this.props.onRevertCommit !== undefined,
       },
+      {
+        label: __DARWIN__ ? 'Drop Commit' : 'Drop commit',
+        action: () => {
+          const indexes = [
+            this.props.commitSHAs.findIndex(sha => sha === commit.sha),
+          ]
+          const lastRetainedCommitRef = this.getLastRetainedCommitRef(indexes)
+          this.props.onDropCommit?.([commit], lastRetainedCommitRef)
+        },
+        enabled: this.canDropCommit(),
+      },
       { type: 'separator' },
       {
         label: __DARWIN__
@@ -599,6 +616,13 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     )
 
     return items
+  }
+
+  private canDropCommit(): boolean {
+    const { onDropCommit, isMultiCommitOperationInProgress } = this.props
+    return (
+      onDropCommit !== undefined && isMultiCommitOperationInProgress === false
+    )
   }
 
   private canCherryPick(): boolean {
@@ -659,6 +683,17 @@ export class CommitList extends React.Component<ICommitListProps, {}> {
     const count = this.props.selectedSHAs.length
 
     return [
+      {
+        label: __DARWIN__ ? `Drop ${count} Commits…` : `Drop ${count} commits…`,
+        action: () => {
+          const indexes = [...this.selectedCommits].map(selectedCommit =>
+            this.props.commitSHAs.findIndex(sha => sha === selectedCommit.sha)
+          )
+          const lastRetainedCommitRef = this.getLastRetainedCommitRef(indexes)
+          this.props.onDropCommit?.(this.selectedCommits, lastRetainedCommitRef)
+        },
+        enabled: this.canDropCommit(),
+      },
       {
         label: __DARWIN__
           ? `Cherry-pick ${count} Commits…`

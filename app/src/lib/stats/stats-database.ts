@@ -32,6 +32,24 @@ export interface IDailyMeasures {
   /** The number of commits. */
   readonly commits: number
 
+  /** The number of times a successful drop commit occurs */
+  readonly dropCommitSuccessfulCount: number
+
+  /** The number of times a drop commit is initiated */
+  readonly dropCommitStartedCount: number
+
+  /** The number of times conflicts encountered during a drop commit  */
+  readonly dropCommitConflictsEncounteredCount: number
+
+  /** The number of times drop commit ended successfully after conflicts  */
+  readonly dropCommitSuccessfulWithConflictsCount: number
+
+  /** The number of times drop commit of multiple commits initiated  */
+  readonly dropMultipleCommitsCount: number
+
+  /** The number of times a drop commit was undone  */
+  readonly dropCommitUndoneCount: number
+
   /** The number of times the user has opened a shell from the app. */
   readonly openShellCount: number
 

@@ -253,6 +253,7 @@ export class CompareSidebar extends React.Component<
             ? this.props.onRevertCommit
             : undefined
         }
+        onDropCommit={this.onDropCommit}
         onAmendCommit={this.props.onAmendCommit}
         onCommitsSelected={this.onCommitsSelected}
         onScroll={this.onScroll}
@@ -274,6 +275,17 @@ export class CompareSidebar extends React.Component<
           this.props.isMultiCommitOperationInProgress
         }
       />
+    )
+  }
+
+  private onDropCommit = async (
+    commitsToDrop: ReadonlyArray<Commit>,
+    lastRetainedCommitRef: string | null
+  ) => {
+    return this.props.dispatcher.dropCommits(
+      this.props.repository,
+      commitsToDrop,
+      lastRetainedCommitRef
     )
   }
 

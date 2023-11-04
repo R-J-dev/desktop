@@ -141,6 +141,7 @@ import {
   addRemote,
   checkoutBranch,
   createCommit,
+  drop,
   getAuthorIdentity,
   getChangedFiles,
   getCommitDiff,
@@ -7077,6 +7078,26 @@ export class AppStore extends TypedBaseStore<IAppState> {
     this.emitUpdate()
   }
 
+  public async _dropCommit(
+    repository: Repository,
+    commitsToDrop: ReadonlyArray<Commit>,
+    lastRetainedCommitRef: string | null
+  ): Promise<RebaseResult> {
+    if (commitsToDrop.length === 0) {
+      log.error('[_dropCommit] - Unable to drop commits. No commits provided.')
+      return RebaseResult.Error
+    }
+
+    const progressCallback =
+      this.getMultiCommitOperationProgressCallBack(repository)
+    const gitStore = this.gitStoreCache.get(repository)
+    const result = await gitStore.performFailableOperation(() =>
+      drop(repository, commitsToDrop, lastRetainedCommitRef, progressCallback)
+    )
+
+    return result || RebaseResult.Error
+  }
+
   /** This shouldn't be called directly. See `Dispatcher`. */
   public async _reorderCommits(
     repository: Repository,
@@ -7206,6 +7227,12 @@ export class AppStore extends TypedBaseStore<IAppState> {
     let banner: Banner
 
     switch (kind) {
+      case MultiCommitOperationKind.Drop:
+        banner = {
+          type: BannerType.DropUndone,
+          commitsCount,
+        }
+        break
       case MultiCommitOperationKind.Squash:
         banner = {
           type: BannerType.SquashUndone,

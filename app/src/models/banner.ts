@@ -14,8 +14,10 @@ export enum BannerType {
   OpenThankYouCard = 'OpenThankYouCard',
   SuccessfulSquash = 'SuccessfulSquash',
   SuccessfulReorder = 'SuccessfulReorder',
+  SuccessfulDrop = 'SuccessfulDrop',
   ConflictsFound = 'ConflictsFound',
   WindowsVersionNoLongerSupported = 'WindowsVersionNoLongerSupported',
+  DropUndone = 'DropUndone',
 }
 
 export type Banner =
@@ -105,6 +107,18 @@ export type Banner =
   | {
       readonly type: BannerType.ReorderUndone
       /** number of commits reordered */
+      readonly commitsCount: number
+    }
+  | {
+      readonly type: BannerType.SuccessfulDrop
+      /** number of commits dropped */
+      readonly count: number
+      /** callback to run when user clicks undo link in banner */
+      readonly onUndo: () => void
+    }
+  | {
+      readonly type: BannerType.DropUndone
+      /** number of commits dropped */
       readonly commitsCount: number
     }
   | {

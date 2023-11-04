@@ -51,11 +51,16 @@ export abstract class BaseRebase extends BaseMultiCommitOperation {
         ? baseBranch || ''
         : `${this.rebaseKind.toLowerCase()} commit`
 
+    const totalNumberOfCommits =
+      this.rebaseKind === MultiCommitOperationKind.Drop
+        ? commits.length
+        : commits.length + 1
+
     await dispatcher.processMultiCommitOperationRebaseResult(
       this.rebaseKind,
       repository,
       rebaseResult,
-      commits.length + 1,
+      totalNumberOfCommits,
       targetBranch,
       thierBranch
     )

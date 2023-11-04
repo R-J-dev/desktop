@@ -2160,6 +2160,12 @@ export class Dispatcher {
           retryAction.files,
           false
         )
+      case RetryActionType.Drop:
+        return this.dropCommits(
+          retryAction.repository,
+          retryAction.commitsToDrop,
+          retryAction.lastRetainedCommitRef
+        )
       default:
         return assertNever(retryAction, `Unknown retry action: ${retryAction}`)
     }
@@ -3209,6 +3215,94 @@ export class Dispatcher {
     this.appStore._setLastThankYou(lastThankYou)
   }
 
+  public async dropCommits(
+    repository: Repository,
+    commitsToDrop: ReadonlyArray<Commit>,
+    lastRetainedCommitRef: string | null,
+    continueWithForcePush: boolean = false
+  ) {
+    const retry: RetryAction = {
+      type: RetryActionType.Drop,
+      repository,
+      commitsToDrop,
+      lastRetainedCommitRef,
+    }
+
+    if (this.appStore._checkForUncommittedChanges(repository, retry)) {
+      return
+    }
+
+    const stateBefore = this.repositoryStateManager.get(repository)
+    const { tip } = stateBefore.branchesState
+
+    if (tip.kind !== TipState.Valid) {
+      log.info(`[dropCommits] - invalid tip state - could not drop commits.`)
+      return
+    }
+
+    this.statsStore.increment('dropCommitStartedCount')
+
+    if (commitsToDrop.length > 1) {
+      this.statsStore.increment('dropMultipleCommitsCount')
+    }
+
+    this.appStore._initializeMultiCommitOperation(
+      repository,
+      {
+        kind: MultiCommitOperationKind.Drop,
+        lastRetainedCommitRef,
+        commits: commitsToDrop,
+        currentTip: tip.branch.tip.sha,
+      },
+      tip.branch,
+      commitsToDrop,
+      tip.branch.tip.sha
+    )
+
+    this.showPopup({
+      type: PopupType.MultiCommitOperation,
+      repository,
+    })
+
+    this.appStore._setMultiCommitOperationUndoState(repository, tip)
+
+    const { askForConfirmationOnForcePush } = this.appStore.getState()
+
+    if (askForConfirmationOnForcePush && !continueWithForcePush) {
+      const showWarning = await this.warnAboutRemoteCommits(
+        repository,
+        tip.branch,
+        lastRetainedCommitRef
+      )
+
+      if (showWarning) {
+        this.setMultiCommitOperationStep(repository, {
+          kind: MultiCommitOperationStepKind.WarnForcePush,
+          targetBranch: tip.branch,
+          baseBranch: tip.branch,
+          commits: commitsToDrop,
+        })
+        return
+      }
+    }
+
+    const result = await this.appStore._dropCommit(
+      repository,
+      commitsToDrop,
+      lastRetainedCommitRef
+    )
+    this.logHowToRevertMultiCommitOperation(MultiCommitOperationKind.Drop, tip)
+
+    return this.processMultiCommitOperationRebaseResult(
+      MultiCommitOperationKind.Drop,
+      repository,
+      result,
+      commitsToDrop.length,
+      tip.branch.name,
+      `${MultiCommitOperationKind.Drop.toLowerCase()} commit`
+    )
+  }
+
   public async reorderCommits(
     repository: Repository,
     commitsToReorder: ReadonlyArray<Commit>,
@@ -3617,6 +3711,9 @@ export class Dispatcher {
 
     let banner: Banner
     switch (kind) {
+      case MultiCommitOperationKind.Drop:
+        banner = { ...bannerBase, type: BannerType.SuccessfulDrop }
+        break
       case MultiCommitOperationKind.Squash:
         banner = { ...bannerBase, type: BannerType.SuccessfulSquash }
         break
